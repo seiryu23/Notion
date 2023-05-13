@@ -23,3 +23,47 @@ exports.getAll = async(req, res) => {
         return res.status(500).json(err);
     }
 }
+
+exports.getOne = async(req, res) => {
+    const { memoId } = req.params;
+    try {
+        const memo = await Memo.findOne({ user: req.user._id, _id: memoId });
+        if (!memo) return res.status(404).json("Note doesn't exist.");
+        res.status(200).json(memo);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+}
+
+exports.update = async(req, res) => {
+    const { memoId } = req.params;
+    const { title, description } = req.body;
+    
+    try {
+        if (title === "") {
+            req.body.title = "無題";
+        }
+        
+        const memo = await Memo.findOne({user: req.user._id, _id: memoId});
+        if (!memo) return res.status(404).json("Note doesn't exist.");
+        
+        const updatedMemo = await Memo.findByIdAndUpdate(memoId, {
+            $set: req.body,
+        });
+        res.status(200).json(updatedMemo);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+}
+
+exports.delete = async(req, res) => {
+    const { memoId } = req.params;
+    try {
+        const memo = await Memo.findOne({ user: req.user._id, _id: memoId });
+        if (!memo) return res.status(404).json("Note doesn't exist.");
+        await Memo.deleteOne({ _id: memoId });
+        res.status(200).json("Deleted the memo.");
+    } catch (err) {
+        res.status(500).json(err);
+    }
+}
